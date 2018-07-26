@@ -3,25 +3,32 @@ import { Link } from 'react-router-dom'
 import BookShelf from './BookShelf'
 
 class ListBooks extends Component {
+
+  // Function to filter books for shelf categories.
+  categoryBooks = (books, shelf) => {
+    return books.filter((book) => book.shelf === shelf)
+  }
+
+
   render(){
-    const { books } = this.props;
-    let currentBooks, wantBooks, readBooks;
-    if (books) {
-      currentBooks = books.filter((book) => book.shelf = "Currently Reading");
-      wantBooks = books.filter((book) => book.shelf = "Want to Read");
-      readBooks = books.filter((book) => book.shelf = "Read");
-    }
+    const { books, onUpdateBooks } = this.props;
+    let currentBooks, readBooks, wantBooks;
+      // Books split using categoryBooks function
+      currentBooks = this.categoryBooks(books, "currentlyReading")
+      wantBooks = this.categoryBooks(books, "wantToRead")
+      readBooks = this.categoryBooks(books, "read")
+
     return (
       <div className="list-books">
         <div className="list-books-title">
           <h1>MyReads</h1>
-          <p>{  }</p>
         </div>
         <div className="list-books-content">
           <div>
-            <BookShelf title="Currently Reading" books={currentBooks}/>
-            <BookShelf title="Want to Read" books={currentBooks}/>
-            <BookShelf title="Read" books={currentBooks}/>
+            {/* Component bookshelf render 3 times with appropriate props. */}
+            <BookShelf title="Currently Reading" books={currentBooks} onUpdateBooks={onUpdateBooks}/>
+            <BookShelf title="Want to Read" books={wantBooks} onUpdateBooks={onUpdateBooks}/>
+            <BookShelf title="Read" books={readBooks} onUpdateBooks={onUpdateBooks}/>
           </div>
         </div>
         <div className="open-search">
