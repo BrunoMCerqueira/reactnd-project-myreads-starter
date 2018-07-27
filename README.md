@@ -18,11 +18,11 @@ This is the first project of React Udacity Nanodegree. Udacity provides a static
 
 ### Backend Server
 
-To simplify your development process, Udacity has provided a backend server for you to develop against. The provided file [`BooksAPI.js`](src/BooksAPI.js) contains the methods you will need to perform necessary operations on the backend:
+To simplify your development process, Udacity has provided a backend server for you to develop against. The provided file **`BooksAPI.js`** contains the methods you will need to perform necessary operations on the backend:
 
-* [`getAll`](#getall)
-* [`update`](#update)
-* [`search`](#search)
+* **`getAll`**
+* **`update`**
+* **`search`**
 
 **Important**
 
