@@ -26,26 +26,27 @@ class BooksApp extends React.Component {
 
   // Set state of searchedBooks after searchBooks called from SearchBook component function
   searchBooks = (query)=> {
-
     if (query) {
+      console.log(this.state.books)
       // API search returns all books match query
-      BooksAPI.search(query).then((books)=> {
+      BooksAPI.search(query).then((searchedBooks)=> {
         // Check if exist books matching the query
-        if (!books.error) {
-          // API getAll returns books with shelf != none
-          BooksAPI.getAll(books).then((searchedBooks) => {
-            /**
-            * Join the noneBooks (shelf = none) with the return from API getAll
-            * to have all books with shelf prop.
-            */
-            const IDsSearchedBook = searchedBooks.map(searchedBook => searchedBook.id);
-            books.forEach((book) => book.shelf = 'none');
-            const noneBooks = books.filter(book => !IDsSearchedBook.includes(book.id));
-            const totalBooks = [...noneBooks, ...searchedBooks];
-            return totalBooks;
-          }).then((totalBooks => {
-            this.setState({ searchedBooks: totalBooks })
-          }))
+        if (!searchedBooks.error) {
+          // Take all ids from books searched, and filter the state books with those ids
+          const IDsSearchedBook = searchedBooks.map(book => book.id);
+          const actualBooks = this.state.books.filter(book => {
+            return IDsSearchedBook.includes(book.id)
+          })
+          // Take all ids from books on state, and filter the searched books without those ids
+          const IDsBook = actualBooks.map(book => book.id);
+          const filterSearchedBooks = searchedBooks.filter(book => {
+            return !IDsBook.includes(book.id);
+          })
+
+          // Join the books from state that comes in the search, with the rest of the search
+          const totalBooks = [...filterSearchedBooks, ...actualBooks];
+
+          this.setState({ searchedBooks: totalBooks })
         } else {
           this.setState({ searchedBooks: [] })
         }
@@ -55,13 +56,39 @@ class BooksApp extends React.Component {
     }
   }
 
-  // Change the shelf of the book after updateBooks called from Book component function
+  // Change the shelf of the book after updateBooks called from Book component function in list
   updateBooks = (book, shelf)=> {
-    BooksAPI.update(book, shelf).then(
-    BooksAPI.getAll().then((books) => {
-        this.setState({ books })
-      }))
+    let shelfBooks = this.state.books;
+    // Update state.books with new shelf of the book changed.
+    shelfBooks[shelfBooks.indexOf(book)].shelf = shelf;
+    this.setState({
+      books: [...shelfBooks]
+    })
+    // Call update API to store the changes.
+    BooksAPI.update(book, shelf)
+  }
+
+  // Change the shelf of the book after updateBooks called from Book component in Search.
+  updateSearchedBooks = (book, shelf)=> {
+    let searchedBooks;
+    let shelfBooks = this.state.books;
+    // Firstable we add the book to state.books if necessary.
+    if(!shelfBooks.includes(book)) {
+      this.setState({
+        books: [...shelfBooks, book]
+      })
     }
+    // We call the API to update and update state.searchedBooks.
+    BooksAPI.update(book, shelf).then(
+      searchedBooks = this.state.searchedBooks.map(searchedBook => {
+        if(searchedBook.id === book.id) {
+          searchedBook.shelf = shelf
+        }
+        return searchedBook
+      })
+    )
+    this.setState({ searchedBooks })
+  }
 
   render() {
     return (
@@ -71,7 +98,7 @@ class BooksApp extends React.Component {
           <SearchBook
             onSearchBooks={this.searchBooks}
             books={ this.state.searchedBooks }
-            onUpdateBooks={this.updateBooks}
+            onUpdateBooks={this.updateSearchedBooks}
           />
         )}/>
         <Route exact path="/" render={()=> (
