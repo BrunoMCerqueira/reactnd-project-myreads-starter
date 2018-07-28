@@ -7,12 +7,6 @@ import * as BooksAPI from './utils/BooksAPI'
 
 class BooksApp extends React.Component {
   state = {
-    /**
-     * TODO: Instead of using this state variable to keep track of which page
-     * we're on, use the URL in the browser's address bar. This will ensure that
-     * users can use the browser's back and forward buttons to navigate between
-     * pages, as well as provide a good URL they can bookmark and share.
-     */
     books: [],
     searchedBooks: []
   }
@@ -21,13 +15,14 @@ class BooksApp extends React.Component {
   componentDidMount(){
     BooksAPI.getAll().then((books) => {
       this.setState({ books })
+    }).catch(function(e) {
+      console.log(e)
     })
   }
 
   // Set state of searchedBooks after searchBooks called from SearchBook component function
   searchBooks = (query)=> {
     if (query) {
-      console.log(this.state.books)
       // API search returns all books match query
       BooksAPI.search(query).then((searchedBooks)=> {
         // Check if exist books matching the query
@@ -58,9 +53,11 @@ class BooksApp extends React.Component {
 
   // Change the shelf of the book after updateBooks called from Book component function in list
   updateBooks = (book, shelf)=> {
-    let shelfBooks = this.state.books;
-    // Update state.books with new shelf of the book changed.
-    shelfBooks[shelfBooks.indexOf(book)].shelf = shelf;
+    // Extracting, updating and inserting book in the shelfbooks
+    const shelfBooks = this.state.books.filter(shelfBook => shelfBook.id !== book.id);
+    book.shelf = shelf
+    shelfBooks[shelfBooks.length] = book;
+    // Update state.books with the book updated.
     this.setState({
       books: [...shelfBooks]
     })
@@ -78,16 +75,16 @@ class BooksApp extends React.Component {
         books: [...shelfBooks, book]
       })
     }
-    // We call the API to update and update state.searchedBooks.
-    BooksAPI.update(book, shelf).then(
-      searchedBooks = this.state.searchedBooks.map(searchedBook => {
-        if(searchedBook.id === book.id) {
-          searchedBook.shelf = shelf
-        }
-        return searchedBook
-      })
-    )
+    // We update state.searchedBooks.
+    searchedBooks = this.state.searchedBooks.map(searchedBook => {
+      if(searchedBook.id === book.id) {
+        searchedBook.shelf = shelf
+      }
+      return searchedBook
+    })
     this.setState({ searchedBooks })
+    // We call the API update.
+    BooksAPI.update(book, shelf)
   }
 
   render() {
